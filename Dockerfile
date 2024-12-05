@@ -1,40 +1,57 @@
-# Use an official Python image as the base
-FROM python:3.12.7-slim
+# Use an official Python runtime as a parent image
+FROM python:3.9-slim
 
-# Install required system dependencies and WINE for Linux
-RUN dpkg --add-architecture i386 && \
-    apt-get update && \
-    apt-get install -y --no-install-recommends \
-    software-properties-common \
-    wget \
-    gnupg2 \
-    lsb-release && \
-    wget -nc https://dl.winehq.org/wine-builds/winehq.key && \
-    mkdir -p /etc/apt/keyrings && \
-    mv winehq.key /etc/apt/keyrings/ && \
-    echo "deb [signed-by=/etc/apt/keyrings/winehq.key] https://dl.winehq.org/wine-builds/debian/ buster main" > /etc/apt/sources.list.d/winehq.list && \
-    apt-get update && \
-    apt-get install -y --no-install-recommends \
-    winehq-stable \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
-
-# Set environment variables for WINE
-ENV DEBIAN_FRONTEND=noninteractive
-ENV WINEDEBUG=-all
-
-# Create a working directory
+# Set the working directory in the container
 WORKDIR /app
 
-# Copy application code
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    wget \
+    build-essential \
+    cmake \
+    libboost-all-dev \
+    libopencascade-dev \
+    libgl1-mesa-dev \
+    libglu1-mesa-dev \
+    liboce-dev \
+    occt-misc \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install IfcOpenShell dependencies
+RUN apt-get update && apt-get install -y \
+    cmake \
+    git \
+    libboost-all-dev \
+    liboctree-dev \
+    libxerces-c-dev \
+    occt-misc \
+    && rm -rf /var/lib/apt/lists/*
+
+# Clone and build IfcOpenShell
+RUN git clone https://github.com/IfcOpenShell/IfcOpenShell.git \
+    && cd IfcOpenShell \
+    && mkdir build \
+    && cd build \
+    && cmake .. \
+    && make \
+    && make install
+
+# Copy the current directory contents into the container at /app
 COPY . /app
 
 # Install Python dependencies
-RUN pip install --no-cache-dir poetry
+COPY requirements.txt /app/
+RUN pip install --no-cache-dir -r requirements.txt
 RUN poetry install --no-root
 
-# Expose the port (Render will use $PORT)
+# Create necessary directories
+RUN mkdir -p /app/uploads /app/converted
+
+# Make port 8000 available to the world outside this container
 EXPOSE 8000
 
-# Run the server
-CMD ["python", "main.py"]
+# Define environment variable to ensure Python output is sent straight to terminal
+ENV PYTHONUNBUFFERED=1
+
+# Run the application
+CMD ["python","main.py"]
