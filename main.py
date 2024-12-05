@@ -136,7 +136,7 @@ async def list_uploaded_files():
             status_code=500,
             detail=f"Error listing files: {str(e)}"
         )
-    
+
 @app.delete("/delete/{folder}")
 async def delete_folder(folder: str):
     """
@@ -166,31 +166,46 @@ async def delete_folder(folder: str):
         print(f"Error deleting folder: {e}")
         raise HTTPException(status_code=500, detail="Could not delete folder")
 
+
 @app.post("/convert/")
-async def convert_file(filename: str = Form(...), location: str = Form(...)):
+async def convert_file(
+        filename: str = Form(...),
+        destination_dir: str = Form("converted")
+):
     """
-    Convert an IFC file to OBJ and XML formats.
+    Convert an IFC file to OBJ and XML formats
+
+    :param filename: Name of the IFC file to convert
+    :param destination_dir: Optional destination directory for converted files
     """
-    # Check if the file exists in the uploads directory
-    file_path = os.path.join(UPLOAD_DIR, filename)
-    if not os.path.exists(file_path):
-        raise HTTPException(status_code=404, detail="File not found")
+    try:
+        # Validate filename exists in upload directory
+        input_file_path = os.path.join(UPLOAD_DIR, filename)
+        if not os.path.exists(input_file_path):
+            raise HTTPException(status_code=404, detail=f"File {filename} not found in uploads")
 
-    # Initialize the IFCConverter
-    converter = IFCConverter(location, CONVERTED_DIR)
+        # Create converter with input from upload directory
+        converter = IFCConverter(
+            input_dir=UPLOAD_DIR,
+            output_dir=os.path.join(CONVERTED_DIR, destination_dir)
+        )
 
-    # Perform the conversion
-    result = converter.convert_file(filename)
+        # Perform the conversion
+        result = converter.convert_file(filename)
 
-    if result["status"] == "success":
-        return {
-            "message": "File converted successfully!",
-            "obj_path": result["obj_path"],
-            "xml_path": result["xml_path"]
-        }
-    else:
-        raise HTTPException(status_code=500, detail=result["message"])
+        # Check conversion status
+        if result['status'] == 'success':
+            return {
+                "message": "Conversion successful",
+                "obj_path": result['obj_path'],
+                "xml_path": result['xml_path']
+            }
+        else:
+            raise HTTPException(status_code=500, detail=result['message'])
 
+    except Exception as e:
+        logger.error(f"Conversion error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
     import uvicorn
