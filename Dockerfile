@@ -20,4 +20,4 @@ COPY . /app/
 EXPOSE 8000
 
 # Run the FastAPI app using Uvicorn
-CMD ["poetry", "run", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["poetry", "main.py"]
