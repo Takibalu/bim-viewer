@@ -1,21 +1,23 @@
-# Use an official Python runtime as a parent image
-FROM python:3.9-slim
+# Use the official Python image as a base
+FROM python:3.11-slim
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y
+# Set the working directory in the container
+WORKDIR /app
 
-# Install Python dependencies
-RUN pip install --no-cache-dir poetry
+# Install Poetry
+RUN pip install poetry
+
+# Copy the Poetry configuration files
+COPY pyproject.toml poetry.lock /app/
+
+# Install dependencies using Poetry
 RUN poetry install --no-root
 
-# Create necessary directories
-RUN mkdir -p /app/uploads /app/converted
+# Copy the rest of the application files
+COPY . /app/
 
-# Make port 8000 available to the world outside this container
+# Expose the port FastAPI will run on
 EXPOSE 8000
 
-# Define environment variable to ensure Python output is sent straight to terminal
-ENV PYTHONUNBUFFERED=1
-
-# Run the application
-CMD ["python","main.py"]
+# Run the FastAPI app using Uvicorn
+CMD ["poetry", "run", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
