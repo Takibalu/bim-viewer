@@ -4,15 +4,8 @@ import requests
 import argparse
 import os
 
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-
 from converter import IFCConverter
-from models import FileModel
 
-DATABASE_URL = os.getenv("db_uri", "sqlite:///bim-app-store.db")
-engine = create_engine(DATABASE_URL)
-session_maker = sessionmaker(bind=engine)
 # Get the directory where the script is located
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -20,41 +13,34 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 LOCAL_STORE_DIR = os.path.join(SCRIPT_DIR, "local store")
 
 # Constants for the server URL
-SERVER_URL = os.getenv("SERVER_URL", "http://127.0.0.1:8000")
+SERVER_URL = "http://127.0.0.1:8000"
 
 
 def upload_files(ifc_file, img_file):
-    """
-       Upload files to the FastAPI server and save metadata to the database.
-    """
-    url = f"{SERVER_URL}/upload/"
-    files = {
-        "ifc_file": (os.path.basename(ifc_file), open(ifc_file, "rb")),
-        "img_file": (os.path.basename(img_file), open(img_file, "rb"))
-    }
+    ifc_file_path = ifc_file
+    img_file_path = img_file
 
-    if not os.path.exists(ifc_file):
+    if not os.path.exists(ifc_file_path):
         print(f"File '{ifc_file}' not found in '{LOCAL_STORE_DIR}'. Please check the filename.")
         return
-    if not os.path.exists(img_file):
+    if not os.path.exists(img_file_path):
         print(f"File '{img_file}' not found in '{LOCAL_STORE_DIR}'. Please check the filename.")
 
-    # Open the file in binary mode and prepare it for uploading
-    response = requests.post(url, files=files)
-    if response.status_code == 200:
-        metadata = response.json()
-        with session_maker() as session:
-            file_record = FileModel(
-                ifc_filename=metadata["ifc_file"],
-                img_filename=metadata["img_file"],
-                upload_time=metadata["upload_time"]
-            )
-            session.add(file_record)
-            session.commit()
-        print("Files uploaded and metadata saved to the database.")
-    else:
-        print(f"File upload failed: {response.json()}")
+    url = f"{SERVER_URL}/upload/"
 
+    # Open the file in binary mode and prepare it for uploading
+    with open(ifc_file_path, "rb") as f:
+        files = {"ifc_file": (ifc_file, f)}
+        with open(img_file_path, "rb") as im:
+            files.update({"img_file": (img_file, im)})
+            # Send POST request to the server
+            response = requests.post(url, files=files)
+
+    # Print the response from the server
+    if response.status_code == 200:
+        print("File uploaded successfully.")
+    else:
+        print("Failed to upload file.")
 
 
 def download_folder(folder):
