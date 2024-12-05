@@ -1,6 +1,15 @@
 # Use the official Python image as a base
 FROM python:3.12.7-slim
 
+# Install Wine dependencies
+RUN dpkg --add-architecture i386 && \
+    apt-get update && \
+    apt-get install -y \
+    wine32 \
+    wine64 \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
 # Set the working directory in the container
 WORKDIR /app
 
@@ -20,4 +29,4 @@ COPY . /app/
 EXPOSE 8000
 
 # Run the FastAPI app using Uvicorn
-CMD ["poetry", "main.py"]
+CMD ["python", "main.py"]
