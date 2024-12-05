@@ -6,6 +6,10 @@ WORKDIR /app
 # Install Poetry
 RUN pip install poetry
 
+# Telepítjük az ifcopenshell Docker konténert
+RUN apt-get update && apt-get install -y \
+    docker.io
+
 # Copy the Poetry configuration files
 COPY pyproject.toml poetry.lock /app/
 
