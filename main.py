@@ -121,31 +121,34 @@ async def list_files():
 
     return {"files": files}
 
-@app.delete("/delete/{filename}")
-async def delete_file(filename: str):
+@app.delete("/delete/{folder}")
+async def delete_folder(folder: str):
     """
-    Delete a stored IFC file from the server.
+    Delete a stored folder and its contents
     """
-    print(f"Delete request received for: {filename}")
-    print(f"Files in upload directory: {os.listdir(UPLOAD_DIR)}")
+    folder_path = os.path.join(UPLOAD_DIR, folder)
+    zip_file_path = f"{folder_path}.zip"
 
-    # Iterate over files in the upload directory
-    for stored_file in os.listdir(UPLOAD_DIR):
-        print(f"Comparing '{filename}' with '{stored_file}'")
-        if stored_file.lower() == filename.lower():  # Case-insensitive match
-            file_path = os.path.join(UPLOAD_DIR, stored_file)
-            try:
-                os.remove(file_path)
-                print(f"Deleted file: {file_path}")
-                return {"message": f"File '{stored_file}' deleted successfully."}
-            except Exception as e:
-                print(f"Error deleting file '{stored_file}': {str(e)}")
-                raise HTTPException(status_code=500, detail="An error occurred while deleting the file.")
+    # Check if folder exists
+    if not os.path.exists(folder_path) or not os.path.isdir(folder_path):
+        raise HTTPException(status_code=404, detail="Folder not found")
 
-    # If no matching file was found
-    print(f"File '{filename}' not found in the directory.")
-    raise HTTPException(status_code=404, detail="File not found")
+    try:
+        # Remove the folder and its contents
+        shutil.rmtree(folder_path)
 
+        # Remove the zip file if it exists
+        if os.path.exists(zip_file_path):
+            os.remove(zip_file_path)
+
+        return {
+            "message": f"Folder {folder} and associated files deleted successfully",
+            "deleted_folder": folder
+        }
+    except Exception as e:
+        # Log the error (you might want to use a proper logging mechanism)
+        print(f"Error deleting folder: {e}")
+        raise HTTPException(status_code=500, detail="Could not delete folder")
 
 @app.post("/convert/")
 async def convert_file(filename: str = Form(...), location: str = Form(...)):
