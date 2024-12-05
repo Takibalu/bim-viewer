@@ -196,7 +196,7 @@ async def convert_file(
         xml_output = os.path.join(xml_dir, f"{base_filename}.xml")
 
         # Use environment variable or install path for the converter
-        converter_path = "/usr/local/bin/IfcConvert"  # Adjust this path
+        converter_path = "/IfcConvert.exe"  # Adjust this path
 
         # Run conversion commands
         obj_cmd = [
