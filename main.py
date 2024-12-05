@@ -1,4 +1,5 @@
 import shutil
+import subprocess
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, UploadFile, File, HTTPException, Form
 from fastapi.responses import FileResponse, JSONResponse
@@ -210,6 +211,8 @@ async def convert_file(
 if __name__ == "__main__":
     import uvicorn
 
+    ifc_converter_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "IfcConvert.exe")
+    subprocess.run(["chmod", "+x", ifc_converter_path], check=True)
     # Use environment variable for port, with fallback
     port = int(os.environ.get('PORT', 8000))
     uvicorn.run(app, host="0.0.0.0", port=port)
