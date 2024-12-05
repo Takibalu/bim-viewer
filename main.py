@@ -104,23 +104,39 @@ async def download_folder(folder: str):
     )
 
 
-@app.get("/files/")
-async def list_files():
+@app.get("/list")
+async def list_uploaded_files():
     """
-    List all stored IFC files
+    List all uploaded folders and their contents
     """
-    files = []
-    for filename in os.listdir(UPLOAD_DIR):
-        if filename.endswith('.ifc'):
-            file_path = os.path.join(UPLOAD_DIR, filename)
-            files.append({
-                "filename": filename,
-                "size": os.path.getsize(file_path),
-                "created_at": datetime.fromtimestamp(os.path.getctime(file_path))
-            })
+    try:
+        # Ensure the upload directory exists
+        if not os.path.exists(UPLOAD_DIR):
+            return {"folders": []}
 
-    return {"files": files}
+        # List all subdirectories in the upload directory
+        folders = [
+            {
+                "folder_name": folder,
+                "files": os.listdir(os.path.join(UPLOAD_DIR, folder)),
+                "uploaded_at": datetime.fromtimestamp(
+                    os.path.getctime(os.path.join(UPLOAD_DIR, folder))
+                ).isoformat()
+            }
+            for folder in os.listdir(UPLOAD_DIR)
+            if os.path.isdir(os.path.join(UPLOAD_DIR, folder))
+        ]
 
+        return {
+            "total_folders": len(folders),
+            "folders": folders
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error listing files: {str(e)}"
+        )
+    
 @app.delete("/delete/{folder}")
 async def delete_folder(folder: str):
     """
