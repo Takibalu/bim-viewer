@@ -6,35 +6,6 @@ WORKDIR /app
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
-    wget \
-    build-essential \
-    cmake \
-    libboost-all-dev \
-    libopencascade-dev \
-    libgl1-mesa-dev \
-    libglu1-mesa-dev \
-    liboce-dev \
-    occt-misc \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install IfcOpenShell dependencies
-RUN apt-get update && apt-get install -y \
-    cmake \
-    git \
-    libboost-all-dev \
-    liboctree-dev \
-    libxerces-c-dev \
-    occt-misc \
-    && rm -rf /var/lib/apt/lists/*
-
-# Clone and build IfcOpenShell
-RUN git clone https://github.com/IfcOpenShell/IfcOpenShell.git \
-    && cd IfcOpenShell \
-    && mkdir build \
-    && cd build \
-    && cmake .. \
-    && make \
-    && make install
 
 # Copy the current directory contents into the container at /app
 COPY . /app
