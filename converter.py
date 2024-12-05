@@ -41,10 +41,15 @@ class IFCConverter:
 
         try:
             # Run the converter for OBJ format
-            subprocess.run([ifc_converter_path, input_file_path, obj_output, "--use-element-guids"], check=True)
-            # Run the converter for XML format (if applicable)
-            subprocess.run([ifc_converter_path, input_file_path, xml_output], check=True)
-
+            subprocess.run(
+                ["docker", "run", "aecgeeks/ifcopenshell", "IfcConvert", input_file_path, obj_output,
+                 "--use-element-guids"],
+                check=True
+            )# Run the converter for XML format (if applicable)
+            subprocess.run(
+                ["docker", "run", "aecgeeks/ifcopenshell", "IfcConvert", input_file_path, xml_output],
+                check=True
+            )
             return {
                 "status": "success",
                 "obj_path": obj_output,
