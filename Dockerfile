@@ -40,8 +40,7 @@ RUN git clone https://github.com/IfcOpenShell/IfcOpenShell.git \
 COPY . /app
 
 # Install Python dependencies
-COPY requirements.txt /app/
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir poetry
 RUN poetry install --no-root
 
 # Create necessary directories
