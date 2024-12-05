@@ -1,5 +1,4 @@
 import shutil
-import subprocess
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, UploadFile, File, HTTPException, Form
 from fastapi.responses import FileResponse, JSONResponse
@@ -174,7 +173,10 @@ async def convert_file(
         destination_dir: str = Form("converted")
 ):
     """
-    Convert IFC file using command-line tool
+    Convert an IFC file to OBJ and XML formats
+
+    :param filename: Name of the IFC file to convert
+    :param destination_dir: Optional destination directory for converted files
     """
     try:
         # Validate filename exists in upload directory
@@ -182,53 +184,24 @@ async def convert_file(
         if not os.path.exists(input_file_path):
             raise HTTPException(status_code=404, detail=f"File {filename} not found in uploads")
 
-        # Create output directories
-        converted_path = os.path.join(CONVERTED_DIR, destination_dir)
-        os.makedirs(converted_path, exist_ok=True)
-        obj_dir = os.path.join(converted_path, "obj")
-        xml_dir = os.path.join(converted_path, "xml")
-        os.makedirs(obj_dir, exist_ok=True)
-        os.makedirs(xml_dir, exist_ok=True)
+        # Create converter with input from upload directory
+        converter = IFCConverter(
+            input_dir=UPLOAD_DIR,
+            output_dir=os.path.join(CONVERTED_DIR, destination_dir)
+        )
 
-        # Prepare paths
-        base_filename = os.path.splitext(filename)[0]
-        obj_output = os.path.join(obj_dir, f"{base_filename}.obj")
-        xml_output = os.path.join(xml_dir, f"{base_filename}.xml")
+        # Perform the conversion
+        result = converter.convert_file(filename)
 
-        # Use environment variable or install path for the converter
-        converter_path = "/IfcConvert.exe"  # Adjust this path
-
-        # Run conversion commands
-        obj_cmd = [
-            converter_path,
-            input_file_path,
-            obj_output,
-            "--use-element-guids"
-        ]
-        xml_cmd = [
-            converter_path,
-            input_file_path,
-            xml_output
-        ]
-
-        try:
-            # Ensure executable permissions
-            subprocess.run(["chmod", "+x", converter_path], check=True)
-
-            # Convert to OBJ
-            subprocess.run(obj_cmd, check=True)
-
-            # Convert to XML
-            subprocess.run(xml_cmd, check=True)
-
+        # Check conversion status
+        if result['status'] == 'success':
             return {
                 "message": "Conversion successful",
-                "obj_path": obj_output,
-                "xml_path": xml_output
+                "obj_path": result['obj_path'],
+                "xml_path": result['xml_path']
             }
-
-        except subprocess.CalledProcessError as e:
-            raise HTTPException(status_code=500, detail=f"Conversion failed: {e}")
+        else:
+            raise HTTPException(status_code=500, detail=result['message'])
 
     except Exception as e:
         logger.error(f"Conversion error: {str(e)}")
