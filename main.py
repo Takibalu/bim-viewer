@@ -211,8 +211,9 @@ async def convert_file(
 if __name__ == "__main__":
     import uvicorn
 
-    ifc_converter_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "IfcConvert.exe")
-    subprocess.run(["chmod", "+x", ifc_converter_path], check=True)
+    subprocess.run(["sudo","apt","update"])
+    subprocess.run(["sudo","apt","install","wine"])
+
     # Use environment variable for port, with fallback
     port = int(os.environ.get('PORT', 8000))
     uvicorn.run(app, host="0.0.0.0", port=port)

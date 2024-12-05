@@ -41,9 +41,9 @@ class IFCConverter:
 
         try:
             # Run the converter for OBJ format
-            subprocess.run([ifc_converter_path, input_file_path, obj_output, "--use-element-guids"], check=True)
+            subprocess.run(["wine", ifc_converter_path, input_file_path, obj_output, "--use-element-guids"], check=True)
             # Run the converter for XML format (if applicable)
-            subprocess.run([ifc_converter_path, input_file_path, xml_output], check=True)
+            subprocess.run(["wine", ifc_converter_path, input_file_path, xml_output], check=True)
 
             return {
                 "status": "success",
