@@ -35,10 +35,13 @@ class IFCConverter:
         # Paths
         ifc_converter_path = os.path.join(SCRIPT_DIR, "IfcConvert.exe")  # Path to the converter executable
         input_file_path = os.path.join(self.input_dir, filename)  # Path to the IFC file to be converted
-
+        logger.info(f"Converting {filename} to OBJ and XML")
+        logger.info(f"IFC coverter path: {ifc_converter_path}")
+        logger.info(f"Input file path: {input_file_path}")
         obj_output = os.path.join(self.obj_dir, f"{os.path.splitext(filename)[0]}.obj")
         xml_output = os.path.join(self.xml_dir, f"{os.path.splitext(filename)[0]}.xml")
-
+        logger.info(f"OBJ output file path: {obj_output}")
+        logger.info(f"XML output file path: {xml_output}")
         try:
             # Run the converter for OBJ format
             subprocess.run(
@@ -46,6 +49,7 @@ class IFCConverter:
                  "--use-element-guids"],
                 check=True
             )# Run the converter for XML format (if applicable)
+            logger.info("ASD")
             subprocess.run(
                 ["docker", "run", "aecgeeks/ifcopenshell", "IfcConvert", input_file_path, xml_output],
                 check=True
@@ -62,6 +66,7 @@ class IFCConverter:
                 "message": f"Conversion failed: {e}"
             }
         except FileNotFoundError:
+            logger.info(FileNotFoundError, subprocess.CompletedProcess)
             return {
                 "status": "failure",
                 "message": "IFC converter executable not found."
