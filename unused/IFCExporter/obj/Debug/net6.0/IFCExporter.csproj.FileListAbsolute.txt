@@ -1,0 +1,5 @@
+C:\FastAPI\IFCExporter\obj\Debug\net6.0\IFCExporter.csproj.AssemblyReference.cache
+C:\FastAPI\IFCExporter\obj\Debug\net6.0\IFCExporter.GeneratedMSBuildEditorConfig.editorconfig
+C:\FastAPI\IFCExporter\obj\Debug\net6.0\IFCExporter.AssemblyInfoInputs.cache
+C:\FastAPI\IFCExporter\obj\Debug\net6.0\IFCExporter.AssemblyInfo.cs
+C:\FastAPI\IFCExporter\obj\Debug\net6.0\IFCExporter.csproj.CoreCompileInputs.cache
