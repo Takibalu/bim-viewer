@@ -33,7 +33,7 @@ class IFCConverter:
         Convert an IFC file to OBJ and XML formats using an external IFC converter.
         """
         # Paths
-        ifc_converter_path = "/IfcConvert.exe"  # Path to the converter executable
+        ifc_converter_path = "IfcConvert.exe"  # Path to the converter executable
         input_file_path = os.path.join(self.input_dir, filename)  # Path to the IFC file to be converted
 
         obj_output = os.path.join(self.obj_dir, f"{os.path.splitext(filename)[0]}.obj")
